@@ -8,8 +8,12 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 void initLcd() {
   lcd.init();
   lcd.backlight();
-  lcd.setCursor(3, 0);
-  //lcd.print("MTU poc starting...");
+  lcd.setCursor(0, 1);
+  lcd.print("MTU poc starting...");
+}
+
+LiquidCrystal_I2C& getLcd() {
+  return lcd;
 }
 
 void printAbout()
@@ -32,6 +36,7 @@ void printAbout()
     lcd.print("0");
   }
   lcd.print(seconds);
+  lcd.print("  ");
   lcd.setCursor(0, 1);
   lcd.print("USB: ");
   if (USB_Running()) {

@@ -1,9 +1,10 @@
 #include <Arduino.h>
 #include <AS5600.h>
 #include "Joystick.h"
-#include <TaskJockey.h>
 #include "ui.h"
 #include "usb_input.h"
+#include <AceRoutine.h>
+using namespace ace_routine;
 
 
 #define ledPin PC13 //13
@@ -16,28 +17,29 @@ uint8_t lastChar = ' ';
 uint16_t seconds = 0;
 uint32_t encReadMilis = 0;
 
-TaskJockey jockey;
-
 
 Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID,
                    JOYSTICK_TYPE_JOYSTICK, 0, 0,
                    true, false, false, false, false, false,
                    false, false, false, false, false);
 
-void taskSecondsIncrease(taskId_t taskId) {
-  seconds++;
-  refreshUi();
+
+
+COROUTINE(blinkLed) {
+  COROUTINE_LOOP() {
+    digitalWrite(ledPin, LOW);
+    COROUTINE_DELAY(100);
+    digitalWrite(ledPin, HIGH);
+    COROUTINE_DELAY(500);
+  }
 }
 
-void taskLedOff(taskId_t taskId) {
-  digitalWrite(ledPin, HIGH);
+COROUTINE(refreshUiCoRoutine) {
+  COROUTINE_LOOP() {
+    refreshUi();
+    COROUTINE_DELAY(1000);
+  }
 }
-
-void taskLedOn(taskId_t taskId) {
-  digitalWrite(ledPin, LOW);
-  jockey.addTask(taskLedOff, NULL, 50, 0, 1);
-}
-
 
 
 void setup() {
@@ -49,9 +51,6 @@ void setup() {
   Joystick.setXAxisRange(0, 4096);
   Joystick.begin();
 
-
-  jockey.addTask(taskLedOn, NULL, 500);
-  jockey.addTask(taskSecondsIncrease, NULL, 1000);
 
   as5600.begin(4);
 }
@@ -72,6 +71,7 @@ void loop() {
       digitalWrite(PA4, LOW);
     }
   }
-  void loopUsbIn();
-  jockey.runTasks();
+  //loopUsbIn();
+  blinkLed.runCoroutine();
+  refreshUiCoRoutine.runCoroutine();
 }

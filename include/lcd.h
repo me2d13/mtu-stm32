@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Arduino.h>
+#include <LiquidCrystal_I2C.h>
 
 void initLcd();
 void printAbout();
+LiquidCrystal_I2C& getLcd();

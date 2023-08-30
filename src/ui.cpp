@@ -12,10 +12,18 @@ u_int32_t lastButtonPress = 0;
 MD_REncoder encoder = MD_REncoder(PIN_A, PIN_B);
 Menu menu = Menu(getLcd());
 
-MenuItem menuItems[3] = {
+MenuItem axisMenuItems[] = {
+  MenuItem("Throttle 1", NULL),
+  MenuItem("Throttle 2", NULL)
+};
+
+MenuItem menuItems[] = {
     MenuItem("About", printAbout),
-    MenuItem("Monitor axis", NULL),
-    MenuItem("Settings", NULL)
+    MenuItem("Monitor axis", axisMenuItems, 2),
+    MenuItem("Settings", NULL),
+    MenuItem("Item1", NULL),
+    MenuItem("Item2", NULL),
+    MenuItem("Item3", NULL)
   };
 
 void encoderISR()
@@ -45,7 +53,7 @@ void encoderButtonISR()
 }
 
 void setupMenu() {
-  menu.addItems(menuItems, 3);
+  menu.addItems(menuItems, 6);
 }
 
 void setupUi() {

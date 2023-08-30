@@ -10,6 +10,10 @@ void initLcd() {
   lcd.backlight();
   lcd.setCursor(0, 1);
   lcd.print("MTU poc starting...");
+  byte char2[8] = {0b00000,0b00100,0b00100,0b00100,0b10101,0b01110,0b00100,0b00000};
+  byte char1[8] = {0b00000,0b00100,0b01110,0b10101,0b00100,0b00100,0b00100,0b00000};
+  lcd.createChar(1, char1);
+  lcd.createChar(2, char2);
 }
 
 LiquidCrystal_I2C& getLcd() {

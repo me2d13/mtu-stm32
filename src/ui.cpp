@@ -9,12 +9,16 @@
 
 u_int32_t lastButtonPress = 0;
 
+bool upPressed = false;
+bool downPressed = false;
+bool enterPressed = false;
+
 MD_REncoder encoder = MD_REncoder(PIN_A, PIN_B);
 Menu menu = Menu(getLcd());
 
 MenuItem axisMenuItems[] = {
-  MenuItem("Throttle 1", NULL),
-  MenuItem("Throttle 2", NULL)
+  MenuItem("Throttle 1", []() { printAxisMonitor(0); }),
+  MenuItem("Throttle 2", []() { printAxisMonitor(1); })
 };
 
 MenuItem menuItems[] = {
@@ -26,30 +30,49 @@ MenuItem menuItems[] = {
     MenuItem("Item3", NULL)
   };
 
+void loopUi() {
+  if (downPressed) {
+    if (menu.isVisible()) {
+      menu.down();
+    }
+    downPressed = false;
+  }
+  if (upPressed) {
+    if (menu.isVisible()) {
+      menu.up();
+    }
+    upPressed = false;
+  }
+  if (enterPressed) {
+    if (menu.isVisible()) {
+      menu.enter();
+    } else {
+      getLcd().clear();
+      menu.show();
+    }
+    enterPressed = false;
+  }
+}
+
 void encoderISR()
 {
   uint8_t x = encoder.read();
-  if (x && menu.isVisible()) {
+  if (x) {
     if (x == DIR_CCW) {
-      menu.up();
+      upPressed = true;
     } else {
-      menu.down();
+      downPressed = true;
     }
   }
 }
 
 void encoderButtonISR()
 {
-  if (millis() - lastButtonPress < 100) {
+  if (millis() - lastButtonPress < 300) {
     return;
   }
   lastButtonPress = millis();
-  if (menu.isVisible()) {
-    menu.enter();
-  } else {
-    getLcd().clear();
-    menu.show();
-  }
+  enterPressed = true;
 }
 
 void setupMenu() {
@@ -72,6 +95,10 @@ void refreshUi() {
     if (menu.getCurrentLevel() == 0 && menu.getCurrentRow() == 0) {
       // at about screen
       printAbout();
+    } else if (menu.getCurrentLevel() == 1) {
+      // TODO: check if we are at axis monitor screen = check currentRow at level 0
+      // at axis monitor screen
+      printAxisMonitor(menu.getCurrentRow());
     }
   }
 }

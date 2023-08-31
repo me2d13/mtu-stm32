@@ -8,6 +8,7 @@ class MenuItem {
     public:
         MenuItem(const char* name, void (*action)());
         MenuItem(const char* name, MenuItem items[], int itemsCount);
+        MenuItem(const char* name, MenuItem items[], int itemsCount, void (*action)());
         const char* getName();
         MenuItem* getItems();
         int getItemsCount();

@@ -2,6 +2,7 @@
 #include <LiquidCrystal_I2C.h>
 #include "SerialUSB.h"
 #include "usb_input.h"
+#include "state.h"
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
@@ -56,4 +57,34 @@ void printAbout()
   else {
     lcd.print("N");
   }
+  lcd.setCursor(0, 2);
+  lcd.print("I2c multiplex: ");
+  lcd.print(getI2cMultiplexerState());
+}
+
+void printAxisMonitor(int axisIndex) {
+  lcd.setCursor(0, 0);
+  lcd.print("Axis ");
+  lcd.print(axisIndex);
+  lcd.print(": ");
+  lcd.print(getAnalogInputValue(axisIndex));
+  lcd.print("    ");
+  lcd.setCursor(0, 1);
+  lcd.print("Axis ");
+  lcd.print(axisIndex + 1);
+  lcd.print(": ");
+  lcd.print(getAnalogInputValue(axisIndex + 1));
+  lcd.print("    ");
+  lcd.setCursor(0, 2);
+  lcd.print("Axis ");
+  lcd.print(axisIndex + 2);
+  lcd.print(": ");
+  lcd.print(getAnalogInputValue(axisIndex + 2));
+  lcd.print("    ");
+  lcd.setCursor(0, 3);
+  lcd.print("Axis ");
+  lcd.print(axisIndex + 3);
+  lcd.print(": ");
+  lcd.print(getAnalogInputValue(axisIndex + 3));
+  lcd.print("    ");
 }

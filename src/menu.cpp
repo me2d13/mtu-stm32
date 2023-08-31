@@ -1,18 +1,15 @@
 #include "menu.h"
 #include <LiquidCrystal_I2C.h>
 
-MenuItem::MenuItem(const char* name, void (*action)()) {
-  this->name = name;
-  this->action = action;
-  this->items = NULL;
-  this->itemsCount = 0;
-}
+MenuItem::MenuItem(const char* name, void (*action)()) : MenuItem(name, NULL, 0, action) {}
 
-MenuItem::MenuItem(const char* name, MenuItem items[], int itemsCount) {
+MenuItem::MenuItem(const char* name, MenuItem items[], int itemsCount) : MenuItem(name, items, itemsCount, NULL) {}
+
+MenuItem::MenuItem(const char* name, MenuItem items[], int itemsCount, void (*action)()) {
   this->name = name;
   this->items = items;
   this->itemsCount = itemsCount;
-  this->action = NULL;
+  this->action = action;
 }
 
 const char* MenuItem::getName() {

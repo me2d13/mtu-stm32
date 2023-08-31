@@ -1,15 +1,13 @@
 #include <Arduino.h>
-#include <AS5600.h>
 #include "Joystick.h"
 #include "ui.h"
 #include "usb_input.h"
 #include <AceRoutine.h>
-using namespace ace_routine;
+#include "inputs.h"
 
 
 #define ledPin PC13 //13
 
-AS5600 as5600; //  use default Wire
 
 
 uint16_t lastPos = 0;
@@ -36,6 +34,7 @@ COROUTINE(blinkLed) {
 
 COROUTINE(refreshUiCoRoutine) {
   COROUTINE_LOOP() {
+    // TODO: enabling following line break the ui - on race condition on lcd
     refreshUi();
     COROUTINE_DELAY(1000);
   }
@@ -47,31 +46,16 @@ void setup() {
   pinMode(PA4,OUTPUT);
   setupUsbIn();
   setupUi();
+  setupInputs();
   
   Joystick.setXAxisRange(0, 4096);
   Joystick.begin();
-
-
-  as5600.begin(4);
 }
 
 void loop() {
-  //uint16_t pos = as5600.rawAngle();
-  int16_t pos = lastPos; //encoder.getPosition();
-  if (pos != lastPos)
-  {
-    lastPos = pos;
-    Joystick.setXAxis(pos);
-    if (pos > 2048)
-    {
-      digitalWrite(PA4, HIGH);
-    }
-    else
-    {
-      digitalWrite(PA4, LOW);
-    }
-  }
   //loopUsbIn();
   blinkLed.runCoroutine();
   refreshUiCoRoutine.runCoroutine();
+  loopUi();
+  refreshInputs();
 }

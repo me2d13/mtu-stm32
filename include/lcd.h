@@ -4,4 +4,5 @@
 
 void initLcd();
 void printAbout();
+void printAxisMonitor(int axisIndex);
 LiquidCrystal_I2C& getLcd();

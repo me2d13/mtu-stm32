@@ -18,8 +18,8 @@ uint32_t encReadMilis = 0;
 
 Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID,
                    JOYSTICK_TYPE_JOYSTICK, 0, 0,
-                   true, false, false, false, false, false,
-                   false, false, false, false, false);
+                   true, true, true, true, true, false,
+                   false, false, false, true, false);
 
 
 
@@ -48,7 +48,13 @@ void setup() {
   setupUi();
   setupInputs();
   
-  Joystick.setXAxisRange(0, 4096);
+  Joystick.setXAxisRange(0, 4096); // throttle 1
+  Joystick.setYAxisRange(0, 4096); // throttle 2
+  Joystick.setZAxisRange(0, 4096); // flaps
+  Joystick.setRxAxisRange(0, 4096); // reverse 1
+  Joystick.setRyAxisRange(0, 4096); // reverse 2
+  Joystick.setBrakeRange(0, 4096); // speed brake
+
   Joystick.begin();
 }
 

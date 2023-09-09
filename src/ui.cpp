@@ -16,14 +16,16 @@ bool enterPressed = false;
 MD_REncoder encoder = MD_REncoder(PIN_A, PIN_B);
 Menu menu = Menu(getLcd());
 
-MenuItem axisMenuItems[] = {
-  MenuItem("Throttle 1", []() { printAxisMonitor(0); }),
-  MenuItem("Throttle 2", []() { printAxisMonitor(1); })
+MenuItem monitorMenuItems[] = {
+  MenuItem("Axis", []() { printAxisMonitor(0); }),
+  MenuItem("Buttons", []() { printButtonsMonitor(); }),
+  MenuItem("I2C1", []() { printI2C(0); }),
+  MenuItem("I2C2", []() { printI2C(1); })
 };
 
 MenuItem menuItems[] = {
     MenuItem("About", printAbout),
-    MenuItem("Monitor axis", axisMenuItems, 2),
+    MenuItem("Monitor", monitorMenuItems, 4),
     MenuItem("Settings", NULL),
     MenuItem("Item1", NULL),
     MenuItem("Item2", NULL),
@@ -95,8 +97,7 @@ void refreshUi() {
     if (menu.getCurrentLevel() == 0 && menu.getCurrentRow() == 0) {
       // at about screen
       printAbout();
-    } else if (menu.getCurrentLevel() == 1) {
-      // TODO: check if we are at axis monitor screen = check currentRow at level 0
+    } else if (menu.getCurrentLevel() == 1 && menu.getCurrentRow() == 0) {
       // at axis monitor screen
       printAxisMonitor(menu.getCurrentRow());
     }

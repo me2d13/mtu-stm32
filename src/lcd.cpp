@@ -3,8 +3,28 @@
 #include "SerialUSB.h"
 #include "usb_input.h"
 #include "state.h"
+#include "inputs.h"
 
-LiquidCrystal_I2C lcd(0x27, 20, 4);
+#define BUFFER_ROWS 20
+
+LiquidCrystal_I2C lcd(0x27, LCD_COLS, LCD_ROWS);
+
+char screenBuffer[BUFFER_ROWS][LCD_COLS+1];
+
+char* btnNames[NUMBER_OF_BUTTONS] = {
+    (char*) "AT-DIS1",
+    (char*) "AT-DIS2",
+    (char*) "TOGA1",
+    (char*) "TOGA2",
+    (char*) "TR-NORM",
+    (char*) "TR-AP",
+    (char*) "START1",
+    (char*) "START2",
+    (char*) "AT-CUT",
+    (char*) "TR-IND-1",
+    (char*) "TR-IND-2",
+    (char*) "PARK-BRK"
+};
 
 void initLcd() {
   lcd.init();
@@ -64,15 +84,15 @@ void printAbout()
 
 void printAxisMonitor(int axisIndex) {
   lcd.setCursor(0, 0);
-  lcd.print("Axis ");
+  lcd.print("SpdBrake (");
   lcd.print(axisIndex);
-  lcd.print(": ");
+  lcd.print("): ");
   lcd.print(getAnalogInputValue(axisIndex));
   lcd.print("    ");
   lcd.setCursor(0, 1);
-  lcd.print("Axis ");
+  lcd.print("Thr1 (");
   lcd.print(axisIndex + 1);
-  lcd.print(": ");
+  lcd.print("): ");
   lcd.print(getAnalogInputValue(axisIndex + 1));
   lcd.print("    ");
   lcd.setCursor(0, 2);
@@ -87,4 +107,42 @@ void printAxisMonitor(int axisIndex) {
   lcd.print(": ");
   lcd.print(getAnalogInputValue(axisIndex + 3));
   lcd.print("    ");
+}
+
+void clearScreenBuffer() {
+  for (int i = 0; i < BUFFER_ROWS; i++) {
+    for (int j = 0; j < LCD_COLS; j++) {
+      screenBuffer[i][j] = ' ';
+    }
+    screenBuffer[i][LCD_COLS] = '\0';
+  }
+}
+
+void printButtonsMonitor() {
+  clearScreenBuffer();
+  for (int i = 0; i < NUMBER_OF_BUTTONS; i++) {
+    buttonState* buttons = getButtons();
+    sprintf(screenBuffer[i], "%s: %d, ch# %d", btnNames[i], buttons[i].value, buttons[i].changeCount);
+  }
+  printBuffer();
+}
+
+void printI2C(int index) {
+  clearScreenBuffer();
+  scanI2C(index, screenBuffer);
+  if (index == 0) {
+    lcd.init();
+  }
+  printBuffer();
+}
+
+void printBuffer() {
+  lcd.setCursor(0, 0);
+  lcd.print(screenBuffer[0]);
+  lcd.setCursor(0, 1);
+  lcd.print(screenBuffer[1]);
+  lcd.setCursor(0, 2);
+  lcd.print(screenBuffer[2]);
+  lcd.setCursor(0, 3);
+  lcd.print(screenBuffer[3]);
 }

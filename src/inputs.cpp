@@ -5,6 +5,7 @@
 #include "state.h"
 #include <AS5600.h>
 #include <MCP23017.h>
+#include "joy.h"
 
 
 TwoWire Wire2(PB11, PB10);// Use STM32 I2C2
@@ -14,30 +15,12 @@ MCP23017 ioExpander;
 
 bool shouldReadButtons = false;
 
-buttonState buttons[] = {
-    { 8, 0, 0, 0 }, // GPB0 AT disconnect 1
-    { 9, 0, 0, 0 }, // GPB1 AT disconnect 2
-    { 10, 0, 0, 0 }, // GPB2 TOGA 1
-    { 11, 0, 0, 0 }, // GPB3 TOGA 2
-    { 12, 0, 0, 0 }, // GPB4 stab trim normal
-    { 13, 0, 0, 0 }, // GPB5 stab trim ap
-    { 14, 0, 0, 0 }, // GPB6 start 1
-    { 15, 0, 0, 0 }, // GPB7 start 2
-    { 7, 0, 0, 0 }, // GPA7 AT cut off
-    { 6, 0, 0, 0 }, // GPA6 trim indicator stop 1
-    { 5, 0, 0, 0 }, // GPA5 trim indicator stop 2
-    { 4, 0, 0, 0 } // GPA3 parking brake
-};
-
-buttonState* getButtons() {
-    return buttons;
-}
-
 void readButtons() {
     shouldReadButtons = true;
 }
 
 void setupInputs() {
+    buttonState* buttons = getButtons();
     Wire.begin();
     if (i2cMultiplexer.begin()) {
         setI2cMultiplexerState((char *) "OK");
@@ -73,6 +56,7 @@ void refreshInputs() {
     setAnalogInputValue(1, as5600.rawAngle());
     bool interruptSignalled = digitalRead(PA0) == LOW;
     if (shouldReadButtons || interruptSignalled) {
+        buttonState* buttons = getButtons();
         shouldReadButtons = false;
         uint8_t pin = ioExpander.lastInterruptPin();
         uint8_t value = ioExpander.lastInterruptPinValue();
@@ -82,6 +66,7 @@ void refreshInputs() {
                 buttons[i].value = value;
                 buttons[i].changeCount++;
                 buttons[i].lastChangeTime = millis();
+                setJoystickButton(i, value == LOW);
                 break;
             }
         }

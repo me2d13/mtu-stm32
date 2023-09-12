@@ -109,6 +109,11 @@ void printAxisMonitor(int axisIndex) {
   lcd.print("    ");
 }
 
+void printMotors(int index) {
+  lcd.setCursor(0, 0);
+  lcd.print("Turn to move");
+}
+
 void clearScreenBuffer() {
   for (int i = 0; i < BUFFER_ROWS; i++) {
     for (int j = 0; j < LCD_COLS; j++) {

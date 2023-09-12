@@ -4,6 +4,7 @@
 #include <AceRoutine.h>
 #include "inputs.h"
 #include "joy.h"
+#include "motors.h"
 
 
 #define ledPin PC13 //13
@@ -41,6 +42,7 @@ void setup() {
   setupUi();
   setupInputs();
   setupJoystick();
+  setupMotors();
 }
 
 void loop() {
@@ -49,4 +51,5 @@ void loop() {
   refreshUiCoRoutine.runCoroutine();
   loopUi();
   refreshInputs();
+  loopMotors();
 }

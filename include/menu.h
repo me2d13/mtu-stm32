@@ -32,6 +32,7 @@ class Menu {
         bool isVisible();
         int getCurrentLevel();
         int getCurrentRow();
+        int getRowAtLevel(int level);
     private:
         int rootItemsCount;
         MenuItem* rootItems;

@@ -158,3 +158,7 @@ void Menu::printMenu() {
     this->lcd.write((byte)2);
   }
 }
+
+int Menu::getRowAtLevel(int level) {
+  return this->pathCurrentIndexes[level];
+}

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Arduino.h>
 
 void setupJoystick();
 void loopJoystick();

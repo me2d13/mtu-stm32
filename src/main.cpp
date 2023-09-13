@@ -46,7 +46,7 @@ void setup() {
 }
 
 void loop() {
-  //loopUsbIn();
+  loopUsbIn();
   blinkLed.runCoroutine();
   refreshUiCoRoutine.runCoroutine();
   loopUi();

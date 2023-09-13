@@ -17,9 +17,15 @@ bool enterPressed = false;
 MD_REncoder encoder = MD_REncoder(PIN_A, PIN_B);
 Menu menu = Menu(getLcd());
 
+MenuItem axisMenuItems[] = {
+  MenuItem("Speed brake", []() { printAxisMonitor(0); }),
+  MenuItem("Throttle 1", []() { printAxisMonitor(1); })
+};
+
 MenuItem monitorMenuItems[] = {
-  MenuItem("Axis", []() { printAxisMonitor(0); }),
+  MenuItem("Axis", axisMenuItems, 2),
   MenuItem("Buttons", []() { printButtonsMonitor(); }),
+  MenuItem("Usb In", []() { printLastUsbMessage(); }),
   MenuItem("I2C1", []() { printI2C(0); }),
   MenuItem("I2C2", []() { printI2C(1); })
 };
@@ -30,7 +36,7 @@ MenuItem motorsMenuItems[] = {
 
 MenuItem menuItems[] = {
     MenuItem("About", printAbout),
-    MenuItem("Monitor", monitorMenuItems, 4),
+    MenuItem("Monitor", monitorMenuItems, 5),
     MenuItem("Motors", motorsMenuItems, 1),
     MenuItem("Item1", NULL),
     MenuItem("Item2", NULL),
@@ -40,12 +46,16 @@ MenuItem menuItems[] = {
 void onDownInScreen(int menuLevel) {
   if (menuLevel == 1 && menu.getRowAtLevel(0) == 2) {
     motorTestDown(menu.getCurrentRow());
+  } else {
+    scrollDown();
   }
 }  
 
 void onUpInScreen(int menuLevel) {
   if (menuLevel == 1 && menu.getRowAtLevel(0) == 2) {
     motorTestUp(menu.getCurrentRow());
+  } else {
+    scrollUp();
   }
 }
 
@@ -118,7 +128,7 @@ void refreshUi() {
     if (menu.getCurrentLevel() == 0 && menu.getCurrentRow() == 0) {
       // at about screen
       printAbout();
-    } else if (menu.getCurrentLevel() == 1 && menu.getRowAtLevel(1) == 1 && menu.getCurrentRow() == 0) {
+    } else if (menu.getCurrentLevel() == 2 && menu.getRowAtLevel(0) == 1 && menu.getRowAtLevel(1) == 0) {
       // at axis monitor screen
       printAxisMonitor(menu.getCurrentRow());
     }

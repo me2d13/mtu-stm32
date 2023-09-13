@@ -10,3 +10,4 @@ void setupMotors();
 void loopMotors();
 void motorTestUp(uint8_t motorIndex);
 void motorTestDown(uint8_t motorIndex);
+void motorMoveRelation(uint8_t motorIndex, int diff);

@@ -10,8 +10,8 @@ void setupMotors() {
     pinMode(SPEED_BRAKE_DIR, OUTPUT); 
     pinMode(SPEED_BRAKE_STEP,OUTPUT);
     stepper.setPinsInverted(false, false, true);
-    stepper.setMaxSpeed(1000);
-    stepper.setAcceleration(500);
+    stepper.setMaxSpeed(500);
+    stepper.setAcceleration(100);
     stepper.setCurrentPosition(pos);
 }
 
@@ -28,4 +28,9 @@ void motorTestDown(uint8_t motorIndex) {
 
 void loopMotors() {
     stepper.run();
+}
+
+void motorMoveRelation(uint8_t motorIndex, int diff) {
+    pos += diff;
+    stepper.moveTo(pos);
 }

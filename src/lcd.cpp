@@ -7,6 +7,8 @@
 
 #define BUFFER_ROWS 20
 
+uint8_t bufferTopRow = 0;
+
 LiquidCrystal_I2C lcd(0x27, LCD_COLS, LCD_ROWS);
 
 char screenBuffer[BUFFER_ROWS][LCD_COLS+1];
@@ -24,6 +26,16 @@ char* btnNames[NUMBER_OF_BUTTONS] = {
     (char*) "TR-IND-1",
     (char*) "TR-IND-2",
     (char*) "PARK-BRK"
+};
+
+char *axisNames[NUMBER_OF_ANALOG_INPUTS] = {
+    (char *) "SPD-BRK",
+    (char *) "THR1",
+    (char *) "THR2",
+    (char *) "FLAPS",
+    (char *) "REV1",
+    (char *) "REV2",
+    (char *) "TRIM"
 };
 
 void initLcd() {
@@ -84,28 +96,20 @@ void printAbout()
 
 void printAxisMonitor(int axisIndex) {
   lcd.setCursor(0, 0);
-  lcd.print("SpdBrake (");
+  lcd.print(axisNames[axisIndex]);
   lcd.print(axisIndex);
   lcd.print("): ");
-  lcd.print(getAnalogInputValue(axisIndex));
+  // get axis data
+  axisState *axis = getAxis(axisIndex);
+  lcd.print(axis->value);
   lcd.print("    ");
   lcd.setCursor(0, 1);
-  lcd.print("Thr1 (");
-  lcd.print(axisIndex + 1);
-  lcd.print("): ");
-  lcd.print(getAnalogInputValue(axisIndex + 1));
+  lcd.print("Min: ");
+  lcd.print(axis->minValue);
   lcd.print("    ");
   lcd.setCursor(0, 2);
-  lcd.print("Axis ");
-  lcd.print(axisIndex + 2);
-  lcd.print(": ");
-  lcd.print(getAnalogInputValue(axisIndex + 2));
-  lcd.print("    ");
-  lcd.setCursor(0, 3);
-  lcd.print("Axis ");
-  lcd.print(axisIndex + 3);
-  lcd.print(": ");
-  lcd.print(getAnalogInputValue(axisIndex + 3));
+  lcd.print("Max: ");
+  lcd.print(axis->maxValue);
   lcd.print("    ");
 }
 
@@ -121,6 +125,42 @@ void clearScreenBuffer() {
     }
     screenBuffer[i][LCD_COLS] = '\0';
   }
+}
+
+void printString(String message) {
+  bufferTopRow = 0;
+  clearScreenBuffer();
+  int row = 0;
+  int col = 0;
+  // iterate message char by char
+  for (int i = 0; i < message.length(); i++) {
+    char c = message.charAt(i);
+    if (c == '\n') {
+      screenBuffer[row][col] = 0;
+      row++;
+      col = 0;
+    }
+    else {
+      screenBuffer[row][col] = c;
+      col++;
+      if (col >= LCD_COLS) {
+        row++;
+        screenBuffer[row][col] = 0;
+        col = 0;
+      }
+    }
+    if (row >= BUFFER_ROWS) {
+      break;
+    }
+  }
+  if (row < BUFFER_ROWS) {
+    screenBuffer[row][col] = 0;
+  }
+  printBuffer();
+}
+
+void printLastUsbMessage() {
+  printString(getLastMessage());
 }
 
 void printButtonsMonitor() {
@@ -143,11 +183,37 @@ void printI2C(int index) {
 
 void printBuffer() {
   lcd.setCursor(0, 0);
-  lcd.print(screenBuffer[0]);
+  lcd.print(screenBuffer[bufferTopRow]);
   lcd.setCursor(0, 1);
-  lcd.print(screenBuffer[1]);
+  lcd.print(screenBuffer[bufferTopRow + 1]);
   lcd.setCursor(0, 2);
-  lcd.print(screenBuffer[2]);
+  lcd.print(screenBuffer[bufferTopRow + 2]);
   lcd.setCursor(0, 3);
-  lcd.print(screenBuffer[3]);
+  lcd.print(screenBuffer[bufferTopRow + 3]);
+  // print arrow up if we can scroll up
+  if (bufferTopRow > 0) {
+    lcd.setCursor(19, 0);
+    lcd.write((byte)1);
+  }
+  // print arrow down if we can scroll down
+  if (bufferTopRow < BUFFER_ROWS - LCD_ROWS) {
+    lcd.setCursor(19, LCD_ROWS - 1);
+    lcd.write((byte)2);
+  }
+}
+
+void scrollUp() {
+  if (bufferTopRow > 0) {
+    bufferTopRow--;
+    lcd.clear();
+    printBuffer();
+  }
+}
+
+void scrollDown() {
+  if (bufferTopRow < BUFFER_ROWS - LCD_ROWS) {
+    bufferTopRow++;
+    lcd.clear();
+    printBuffer();
+  }
 }

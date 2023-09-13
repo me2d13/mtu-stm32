@@ -4,7 +4,18 @@
 #include "joy.h"
 
 char i2cMultiplexerState[COMMON_STATE_LENGTH] = "?";
-uint16_t analogInputValues[NUMBER_OF_ANALOG_INPUTS];
+
+String lastMessage = "No message received yet.\nBut dont worry, it will come soon.\nOne day...\nMaybe...\nOr not...\nWho knows...\n";
+
+axisState axis[NUMBER_OF_ANALOG_INPUTS] = {
+    { NOT_USED, 0, 0, AXIS_MAX, 0 }, // Speed brake
+    { NOT_USED, 1, 0, AXIS_MAX, 0 }, // Throttle 1
+    { NOT_USED, 2, 0, AXIS_MAX, 0 }, // Throttle 2
+    { NOT_USED, 3, 0, AXIS_MAX, 0 }, // Flaps
+    { PA1, NOT_USED, 0, AXIS_MAX, 0 }, // Reverse 1
+    { PA2, NOT_USED, 0, AXIS_MAX, 0 }, // Reverse 2
+    { NOT_USED, 5, 0, AXIS_MAX, 0 }, // Trim
+};
 
 buttonState buttons[] = {
     { 8, 0, 0, 0 }, // GPB0 AT disconnect 1
@@ -34,12 +45,31 @@ char *getI2cMultiplexerState() {
 }
 
 void setAnalogInputValue(uint8_t index, uint16_t value) {
-    if (analogInputValues[index] != value) {
-        analogInputValues[index] = value;
+    if (axis[index].value != value) {
+        axis[index].value = value;
+        // auto calibration, set min and max values
+        if (axis[index].minValue > value) {
+            axis[index].minValue = value;
+        }
+        if (axis[index].maxValue < value) {
+            axis[index].maxValue = value;
+        }
         setJoystickAxis(index, value);
     }
 }
 
 uint16_t getAnalogInputValue(uint8_t index) {
-    return analogInputValues[index];
+    return axis[index].value;
+}
+
+axisState *getAxis(uint8_t index) {
+    return &axis[index];
+}
+
+void setLastMessage(String message) {
+    lastMessage = message;
+}
+
+String getLastMessage() {
+    return lastMessage;
 }

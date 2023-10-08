@@ -31,13 +31,14 @@ MenuItem monitorMenuItems[] = {
 };
 
 MenuItem motorsMenuItems[] = {
-  MenuItem("Speed brake", []() { printMotors(0); })
+  MenuItem("Speed brake", []() { printMotors(0); }),
+  MenuItem("Throttle 1", []() { printMotors(1); })
 };
 
 MenuItem menuItems[] = {
     MenuItem("About", printAbout),
     MenuItem("Monitor", monitorMenuItems, 5),
-    MenuItem("Motors", motorsMenuItems, 1),
+    MenuItem("Motors", motorsMenuItems, 2),
     MenuItem("Item1", NULL),
     MenuItem("Item2", NULL),
     MenuItem("Item3", NULL)

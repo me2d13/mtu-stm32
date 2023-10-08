@@ -6,7 +6,7 @@
 #include <AS5600.h>
 #include <MCP23017.h>
 #include "joy.h"
-
+#include "motors.h"
 
 TwoWire Wire2(PB11, PB10);// Use STM32 I2C2
 TCA9548 i2cMultiplexer(0x70);
@@ -45,6 +45,17 @@ void setupInputs() {
         buttons[i].changeCount++;
         buttons[i].lastChangeTime = millis();
     }
+
+    // setup output pins
+    for (size_t i = 0; i < NUMBER_OF_MOTORS; i++)
+    {
+        motorState *motor = getMotor(i);
+        ioExpander.pinMode(motor->enablePin, OUTPUT);
+    }
+}
+
+void setMuxedOutputPin(uint8_t pin, uint8_t value) {
+    ioExpander.digitalWrite(pin, value);
 }
 
 void refreshInputs() {

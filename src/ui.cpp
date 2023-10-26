@@ -9,6 +9,8 @@
 #define BUTTON           PA15  
 
 u_int32_t lastButtonPress = 0;
+u_int32_t enterEventCount = 0;
+bool enterIsDown = false;
 
 bool upPressed = false;
 bool downPressed = false;
@@ -32,13 +34,17 @@ MenuItem monitorMenuItems[] = {
 
 MenuItem motorsMenuItems[] = {
   MenuItem("Speed brake", []() { printMotors(0); }),
-  MenuItem("Throttle 1", []() { printMotors(1); })
+  MenuItem("Throttle 1", []() { printMotors(1); }),
+  MenuItem("Throttle 2", []() { printMotors(2); }),
+  MenuItem("Trim", []() { printMotors(3); }),
+  MenuItem("Trim Ind 1", []() { printMotors(4); }),
+  MenuItem("Trim Ind 2", []() { printMotors(5); })
 };
 
 MenuItem menuItems[] = {
     MenuItem("About", printAbout),
     MenuItem("Monitor", monitorMenuItems, 5),
-    MenuItem("Motors", motorsMenuItems, 2),
+    MenuItem("Motors", motorsMenuItems, 6),
     MenuItem("Item1", NULL),
     MenuItem("Item2", NULL),
     MenuItem("Item3", NULL)
@@ -102,11 +108,28 @@ void encoderISR()
 
 void encoderButtonISR()
 {
-  if (millis() - lastButtonPress < 300) {
+  if (enterPressed) {
+    // previous press was not handled yet
     return;
   }
-  lastButtonPress = millis();
-  enterPressed = true;
+  uint8_t buttonValue = digitalRead(BUTTON);
+  // on button going LOW start measuring time
+  if (buttonValue == LOW) {
+    enterEventCount++;
+    lastButtonPress = millis();
+    enterIsDown = true;
+    return;
+  }
+  // on button going HIGH check if it was pressed for more than 300ms
+  if (enterIsDown && buttonValue == HIGH && millis() - lastButtonPress > 100) {
+    enterPressed = true;
+    enterIsDown = false;
+  }
+  // otherwise it was just a short press, ignore
+}
+
+int getEnterEventCount() {
+  return enterEventCount;
 }
 
 void setupMenu() {
@@ -114,11 +137,12 @@ void setupMenu() {
 }
 
 void setupUi() {
+  pinMode(BUTTON, INPUT_PULLUP);
   initLcd();
   encoder.begin();
   attachInterrupt(digitalPinToInterrupt(PIN_A),  encoderISR,       CHANGE);  //call encoderISR()    every high->low or low->high changes
   attachInterrupt(digitalPinToInterrupt(PIN_B),  encoderISR,       CHANGE);  //call encoderISR()    every high->low or low->high changes
-  attachInterrupt(digitalPinToInterrupt(BUTTON), encoderButtonISR, FALLING); //call pushButtonISR() every high->low              changes
+  attachInterrupt(digitalPinToInterrupt(BUTTON), encoderButtonISR, CHANGE); //call pushButtonISR() every high->low              changes
   setupMenu();
   menu.show();
 }

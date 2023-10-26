@@ -50,7 +50,13 @@ void setupInputs() {
     for (size_t i = 0; i < NUMBER_OF_MOTORS; i++)
     {
         motorState *motor = getMotor(i);
-        ioExpander.pinMode(motor->enablePin, OUTPUT);
+        if (motor->stepPin != IND_STEP) {
+            // for all motors except indicator enable is muxed
+            ioExpander.pinMode(motor->enablePin, OUTPUT);
+        } else {
+            // for indicator enable is direct pin
+            pinMode(motor->enablePin, OUTPUT);
+        }
     }
 }
 

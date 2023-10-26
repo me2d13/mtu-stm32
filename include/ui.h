@@ -3,3 +3,4 @@
 void setupUi();
 void refreshUi();
 void loopUi();
+int getEnterEventCount();

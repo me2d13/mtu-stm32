@@ -4,10 +4,12 @@
 #include "usb_input.h"
 #include "state.h"
 #include "inputs.h"
+#include "ui.h"
 
 #define BUFFER_ROWS 20
 
 uint8_t bufferTopRow = 0;
+bool bufferredScreen = false;
 
 LiquidCrystal_I2C lcd(0x27, LCD_COLS, LCD_ROWS);
 
@@ -55,6 +57,7 @@ LiquidCrystal_I2C& getLcd() {
 
 void printAbout()
 {
+  bufferredScreen = false;
   lcd.setCursor(0, 0);
   lcd.print("Uptime: ");
   // print milis as hours, minutes and seconds
@@ -92,9 +95,13 @@ void printAbout()
   lcd.setCursor(0, 2);
   lcd.print("I2c multiplex: ");
   lcd.print(getI2cMultiplexerState());
+  lcd.setCursor(0, 3);
+  lcd.print("Enter event#: ");
+  lcd.print(getEnterEventCount());
 }
 
 void printAxisMonitor(int axisIndex) {
+  bufferredScreen = false;
   lcd.setCursor(0, 0);
   lcd.print(axisNames[axisIndex]);
   lcd.print(axisIndex);
@@ -114,11 +121,13 @@ void printAxisMonitor(int axisIndex) {
 }
 
 void printMotors(int index) {
+  bufferredScreen = false;
   lcd.setCursor(0, 0);
   lcd.print("Turn to move");
 }
 
 void clearScreenBuffer() {
+  bufferredScreen = true;
   for (int i = 0; i < BUFFER_ROWS; i++) {
     for (int j = 0; j < LCD_COLS; j++) {
       screenBuffer[i][j] = ' ';
@@ -203,7 +212,7 @@ void printBuffer() {
 }
 
 void scrollUp() {
-  if (bufferTopRow > 0) {
+  if (bufferredScreen && bufferTopRow > 0) {
     bufferTopRow--;
     lcd.clear();
     printBuffer();
@@ -211,7 +220,7 @@ void scrollUp() {
 }
 
 void scrollDown() {
-  if (bufferTopRow < BUFFER_ROWS - LCD_ROWS) {
+  if (bufferredScreen && bufferTopRow < BUFFER_ROWS - LCD_ROWS) {
     bufferTopRow++;
     lcd.clear();
     printBuffer();

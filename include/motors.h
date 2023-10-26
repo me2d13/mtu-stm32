@@ -10,7 +10,16 @@
 #define THR1_DIR PC14
 #define THR1_STEP PC15
 
-#define NUMBER_OF_MOTORS 2
+#define THR2_DIR PB0
+#define THR2_STEP PB1
+
+#define TRIM_DIR PA4
+#define TRIM_STEP PA5
+
+#define IND_DIR PB8
+#define IND_STEP PB9
+
+#define NUMBER_OF_MOTORS 6
 
 struct motorState {
     uint8_t dirPin;

@@ -3,6 +3,7 @@
 #include "lcd.h"
 #include "menu.h"
 #include "motors.h"
+#include "joy.h"
 
 #define PIN_A            PB3  
 #define PIN_B            PB4  
@@ -21,11 +22,16 @@ Menu menu = Menu(getLcd());
 
 MenuItem axisMenuItems[] = {
   MenuItem("Speed brake", []() { printAxisMonitor(0); }),
-  MenuItem("Throttle 1", []() { printAxisMonitor(1); })
+  MenuItem("Throttle 1", []() { printAxisMonitor(1); }),
+  MenuItem("Throttle 2", []() { printAxisMonitor(2); }),
+  MenuItem("Flaps", []() { printAxisMonitor(3); }),
+  MenuItem("Reverse 1", []() { printAxisMonitor(4); }),
+  MenuItem("Reverse 2", []() { printAxisMonitor(5); }),
+  MenuItem("Trim", []() { printAxisMonitor(6); })
 };
 
 MenuItem monitorMenuItems[] = {
-  MenuItem("Axis", axisMenuItems, 2),
+  MenuItem("Axis", axisMenuItems, 7),
   MenuItem("Buttons", []() { printButtonsMonitor(); }),
   MenuItem("Usb In", []() { printLastUsbMessage(); }),
   MenuItem("I2C1", []() { printI2C(0); }),
@@ -41,11 +47,33 @@ MenuItem motorsMenuItems[] = {
   MenuItem("Trim Ind 2", []() { printMotors(5); })
 };
 
+void startCalibrateAxis(uint8_t axis) {
+  setCalibrateAxis(axis, true);
+  printAxisCalibration();
+}
+
+MenuItem axisCalibrationMenuItems[] = {
+  MenuItem("All together", []() { startCalibrateAxis(ALL_AXIS); }),
+  MenuItem("Speed brake", []() { startCalibrateAxis(0); }),
+  MenuItem("Throttle 1", []() { startCalibrateAxis(1); }),
+  MenuItem("Throttle 2", []() { startCalibrateAxis(2); }),
+  MenuItem("Flaps", []() { startCalibrateAxis(3); }),
+  MenuItem("Reverse 1", []() { startCalibrateAxis(4); }),
+  MenuItem("Reverse 2", []() { startCalibrateAxis(5); })
+};
+
+MenuItem settingsMenuItems[] = {
+  MenuItem("Calibrate axis", axisCalibrationMenuItems, 7)
+};
+
+#define MENU_0_SETTINGS 3
+#define MENU_1_CALIBRATE_AXIS 0
+
 MenuItem menuItems[] = {
     MenuItem("About", printAbout),
     MenuItem("Monitor", monitorMenuItems, 5),
     MenuItem("Motors", motorsMenuItems, 6),
-    MenuItem("Item1", NULL),
+    MenuItem("Settings", settingsMenuItems, 1),
     MenuItem("Item2", NULL),
     MenuItem("Item3", NULL)
   };
@@ -87,6 +115,10 @@ void loopUi() {
     if (menu.isVisible()) {
       menu.enter();
     } else {
+      if (menu.getCurrentLevel() == 2 && menu.getRowAtLevel(0) == MENU_0_SETTINGS && menu.getRowAtLevel(1) == MENU_1_CALIBRATE_AXIS) {
+        // at axis calibration screen
+        setCalibrateAxis(ALL_AXIS, false);
+      }
       getLcd().clear();
       menu.show();
     }
@@ -120,8 +152,8 @@ void encoderButtonISR()
     enterIsDown = true;
     return;
   }
-  // on button going HIGH check if it was pressed for more than 300ms
-  if (enterIsDown && buttonValue == HIGH && millis() - lastButtonPress > 100) {
+  // on button going HIGH check if it was pressed for more than 50ms
+  if (enterIsDown && buttonValue == HIGH && millis() - lastButtonPress > 50) {
     enterPressed = true;
     enterIsDown = false;
   }
@@ -156,6 +188,12 @@ void refreshUi() {
     } else if (menu.getCurrentLevel() == 2 && menu.getRowAtLevel(0) == 1 && menu.getRowAtLevel(1) == 0) {
       // at axis monitor screen
       printAxisMonitor(menu.getCurrentRow());
+    } else if (menu.getCurrentLevel() == 1 && menu.getRowAtLevel(0) == 1 && menu.getCurrentRow() == 1) {
+      // at axis monitor screen
+      printButtonsMonitor();
+    } else if (menu.getCurrentLevel() == 2 && menu.getRowAtLevel(0) == MENU_0_SETTINGS && menu.getRowAtLevel(1) == MENU_1_CALIBRATE_AXIS) {
+      // at axis calibration screen
+      printAxisCalibration();
     }
   }
 }

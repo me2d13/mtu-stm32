@@ -13,6 +13,7 @@ void printMotors(int index);
 void printLastUsbMessage();
 void scrollUp();
 void scrollDown();
+void printAxisCalibration();
 
 #define LCD_COLS 20
 #define LCD_ROWS 4

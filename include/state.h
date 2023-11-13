@@ -7,8 +7,10 @@
 
 #define NUMBER_OF_BUTTONS 12
 
+#define PIN_PARK_SWITCH 4
+#define PIN_PARK_LED PA3
+
 #define NOT_USED 100
-#define AXIS_MAX 4096
 
 struct buttonState {
     uint8_t pin;
@@ -23,6 +25,7 @@ struct axisState {
     uint16_t value;
     uint16_t minValue;
     uint16_t maxValue;
+    bool calibrating;
 };
 
 buttonState* getButtons();

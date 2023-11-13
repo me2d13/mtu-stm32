@@ -104,8 +104,9 @@ void printAxisMonitor(int axisIndex) {
   bufferredScreen = false;
   lcd.setCursor(0, 0);
   lcd.print(axisNames[axisIndex]);
+  lcd.print(" (");
   lcd.print(axisIndex);
-  lcd.print("): ");
+  lcd.print("):  ");
   // get axis data
   axisState *axis = getAxis(axisIndex);
   lcd.print(axis->value);
@@ -224,5 +225,20 @@ void scrollDown() {
     bufferTopRow++;
     lcd.clear();
     printBuffer();
+  }
+}
+
+void printAxisCalibration() {
+  bufferredScreen = false;
+  for (int row = 0; row < 3; row++) {
+    for (int col = 0; col < 2; col++) {
+      lcd.setCursor(col*10, row);
+      lcd.print("          ");
+      lcd.setCursor(col*10, row);
+      axisState *axis = getAxis(row*2 + col);
+      lcd.print(axis->minValue);
+      lcd.print("/");
+      lcd.print(axis->maxValue);
+    }
   }
 }

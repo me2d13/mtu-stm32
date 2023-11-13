@@ -58,19 +58,37 @@ void setupInputs() {
             pinMode(motor->enablePin, OUTPUT);
         }
     }
+
+    // setup park led pin
+    pinMode(PIN_PARK_LED, OUTPUT);
 }
 
 void setMuxedOutputPin(uint8_t pin, uint8_t value) {
     ioExpander.digitalWrite(pin, value);
 }
 
-void refreshInputs() {
-    // speed brake is on channel 0
-    i2cMultiplexer.selectChannel(0);
-    setAnalogInputValue(0, as5600.rawAngle());
-    // throttle 1 is on channel 1
-    i2cMultiplexer.selectChannel(1);
-    setAnalogInputValue(1, as5600.rawAngle());
+void readAxis() {
+    for (int i = 0; i < NUMBER_OF_ANALOG_INPUTS; i++) {
+        axisState *axis = getAxis(i);
+        uint16_t lastValue = axis->value;
+        uint16_t value = 0;
+        if (axis->pin != NOT_USED) {
+            value = analogRead(axis->pin);
+        }
+        if (axis->i2cChannel != NOT_USED) {
+            i2cMultiplexer.selectChannel(axis->i2cChannel);
+            value = as5600.rawAngle();
+        }
+        setAnalogInputValue(i, value);
+        if (!axis->calibrating && lastValue != value) {
+            // recalculate value by calibrated axis range to have 0-4096 range
+            value = map(value, axis->minValue, axis->maxValue, 0, AXIS_MAX);
+            setJoystickAxis(i, value);
+        }
+    }
+}
+
+void manageButtons() {
     bool interruptSignalled = digitalRead(PA0) == LOW;
     if (shouldReadButtons || interruptSignalled) {
         buttonState* buttons = getButtons();
@@ -84,10 +102,18 @@ void refreshInputs() {
                 buttons[i].changeCount++;
                 buttons[i].lastChangeTime = millis();
                 setJoystickButton(i, value == LOW);
+                if (buttons[i].pin == PIN_PARK_SWITCH) {
+                    digitalWrite(PIN_PARK_LED, !value);
+                }
                 break;
             }
         }
     }
+}
+
+void refreshInputs() {
+    readAxis();
+    manageButtons();
 }
 
 void scanI2C(int index, char screenBuffer[][21]) {

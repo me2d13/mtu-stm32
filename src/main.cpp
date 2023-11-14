@@ -5,6 +5,7 @@
 #include "inputs.h"
 #include "joy.h"
 #include "motors.h"
+#include "eeprom.h"
 
 
 #define ledPin PC13 //13
@@ -38,11 +39,13 @@ COROUTINE(refreshUiCoRoutine) {
 void setup() {
   pinMode(ledPin,OUTPUT);
   pinMode(PA4,OUTPUT);
+  setupEeprom();
   setupUsbIn();
   setupUi();
   setupInputs();
   setupJoystick();
   setupMotors();
+  readCalibrationFromEeprom();
 }
 
 void loop() {

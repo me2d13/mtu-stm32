@@ -13,7 +13,10 @@ TCA9548 i2cMultiplexer(0x70);
 AS5600 as5600; //  use default Wire
 MCP23017 ioExpander;
 
+int axisOffsets[NUMBER_OF_ANALOG_INPUTS] = { -200, 0, 0, 0, 0, 0, 0 };
+
 bool shouldReadButtons = false;
+bool initialRun = true;
 
 void readButtons() {
     shouldReadButtons = true;
@@ -79,8 +82,17 @@ void readAxis() {
             i2cMultiplexer.selectChannel(axis->i2cChannel);
             value = as5600.rawAngle();
         }
+        // compenstate for axis offset, when movement goes over 0
+        value = (value + AXIS_MAX + axisOffsets[i]) % AXIS_MAX;
         setAnalogInputValue(i, value);
-        if (!axis->calibrating && lastValue != value) {
+        if (!axis->calibrating && (lastValue != value || initialRun)) {
+            // because of some noise, never use value below minValue or above maxValue
+            if (value < axis->minValue) {
+                value = axis->minValue;
+            }
+            if (value > axis->maxValue) {
+                value = axis->maxValue;
+            }
             // recalculate value by calibrated axis range to have 0-4096 range
             value = map(value, axis->minValue, axis->maxValue, 0, AXIS_MAX);
             setJoystickAxis(i, value);
@@ -111,9 +123,28 @@ void manageButtons() {
     }
 }
 
+void initialReadButtons() {
+    uint32_t time = millis();
+    buttonState* buttons = getButtons();
+    for (int i = 0; i < NUMBER_OF_BUTTONS; i++) {
+        buttons[i].value = ioExpander.digitalRead(buttons[i].pin);
+        buttons[i].changeCount++;
+        buttons[i].lastChangeTime = millis();
+        setJoystickButton(i, buttons[i].value == LOW);
+        if (buttons[i].pin == PIN_PARK_SWITCH) {
+            digitalWrite(PIN_PARK_LED, !buttons[i].value);
+        }
+    }
+}
+
 void refreshInputs() {
     readAxis();
-    manageButtons();
+    if (initialRun) {
+        initialReadButtons();
+    } else { 
+        manageButtons();
+    }
+    initialRun = false;
 }
 
 void scanI2C(int index, char screenBuffer[][21]) {

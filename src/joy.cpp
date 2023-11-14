@@ -1,6 +1,7 @@
 #include "Joystick.h"
 #include "joy.h"
 #include "state.h"
+#include "eeprom.h"
 
 
 Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID,
@@ -40,7 +41,7 @@ void setJoystickAxis(uint8_t axis, uint16_t value) {
       Joystick.setZAxis(value);
       break;
     case 4:  // Reverse 1
-      Joystick.setRxAxis(value);
+      Joystick.setRxAxis(AXIS_MAX - value);  // reversed in HW
       break;
     case 5:  // Reverse 2
       Joystick.setRyAxis(value);
@@ -69,5 +70,9 @@ void setCalibrateAxis(uint8_t axis, bool calibrate) {
       a->minValue = AXIS_MAX;
       a->maxValue = 0;
     }
+  }
+  // write to eeprom on calibration end
+  if (!calibrate) {
+    writeCalibrationToEeprom();
   }
 }

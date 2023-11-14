@@ -152,8 +152,8 @@ void encoderButtonISR()
     enterIsDown = true;
     return;
   }
-  // on button going HIGH check if it was pressed for more than 50ms
-  if (enterIsDown && buttonValue == HIGH && millis() - lastButtonPress > 50) {
+  // on button going HIGH check if it was pressed for more than 20ms
+  if (enterIsDown && buttonValue == HIGH && millis() - lastButtonPress > 20) {
     enterPressed = true;
     enterIsDown = false;
   }

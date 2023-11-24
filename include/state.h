@@ -17,12 +17,14 @@ struct buttonState {
     uint8_t value;
     uint8_t changeCount;
     uint32_t lastChangeTime;
+    bool reversed;
 };
 
 struct axisState {
     uint8_t pin;
     uint8_t i2cChannel;
     uint16_t value;
+    uint16_t rawValue;
     uint16_t minValue;
     uint16_t maxValue;
     bool calibrating;
@@ -32,9 +34,15 @@ buttonState* getButtons();
 
 void setI2cMultiplexerState(char *state);
 char *getI2cMultiplexerState();
-void setAnalogInputValue(uint8_t index, uint16_t value);
+void setAnalogInputValue(uint8_t index, uint16_t value, uint16_t rawValue);
 uint16_t getAnalogInputValue(uint8_t index);
+uint16_t getAnalogInputRawValue(uint8_t index);
 axisState *getAxis(uint8_t index);
 
 void setLastMessage(String message);
 String getLastMessage();
+
+void setMotorVoltagePresent(bool value);
+bool getMotorVoltagePresent();
+void setStrong5VoltagePresent(bool value);
+bool getStrong5VoltagePresent();

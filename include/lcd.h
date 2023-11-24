@@ -14,6 +14,7 @@ void printLastUsbMessage();
 void scrollUp();
 void scrollDown();
 void printAxisCalibration();
+void printAxisAndButtonsMonitor();
 
 #define LCD_COLS 20
 #define LCD_ROWS 4

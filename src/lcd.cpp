@@ -93,11 +93,52 @@ void printAbout()
     lcd.print("N");
   }
   lcd.setCursor(0, 2);
-  lcd.print("I2c multiplex: ");
+  lcd.print("I2cMpx:");
   lcd.print(getI2cMultiplexerState());
+  lcd.print(", 24:");
+  lcd.print(getMotorVoltagePresent() ? "Y" : "N");
+  lcd.print(", 5:");
+  lcd.print(getStrong5VoltagePresent() ? "Y" : "N");
   lcd.setCursor(0, 3);
   lcd.print("Enter event#: ");
   lcd.print(getEnterEventCount());
+}
+
+void printRightAlignedNumber(uint16_t number) {
+  if (number < 10) {
+    lcd.print("   ");
+  }
+  else if (number < 100) {
+    lcd.print("  ");
+  } else if (number < 1000) {
+    lcd.print(" ");
+  }
+  lcd.print(number);
+}
+
+void printAxisAndButtonsMonitor() {
+  bufferredScreen = false;
+  lcd.setCursor(0, 0);
+  lcd.print("TH1:");
+  printRightAlignedNumber(getAxis(1)->rawValue);
+  lcd.print(" TH2:");
+  printRightAlignedNumber(getAxis(2)->rawValue);
+  lcd.setCursor(0, 1);
+  lcd.print("RE1:");
+  printRightAlignedNumber(getAxis(4)->rawValue);
+  lcd.print(" RE2:");
+  printRightAlignedNumber(getAxis(5)->rawValue);
+  lcd.setCursor(0, 2);
+  lcd.print("SPB:");
+  printRightAlignedNumber(getAxis(0)->rawValue);
+  lcd.print(" FLP:");
+  printRightAlignedNumber(getAxis(3)->rawValue);
+  // buttons row
+  lcd.setCursor(0, 3);
+  for (int i = 0; i < NUMBER_OF_BUTTONS; i++) {
+    buttonState *buttons = getButtons();
+    lcd.print(buttons[i].value);
+  }
 }
 
 void printAxisMonitor(int axisIndex) {

@@ -30,7 +30,12 @@ MenuItem axisMenuItems[] = {
   MenuItem("Trim", []() { printAxisMonitor(6); })
 };
 
+#define MENU_MONITOR_ALL 0
+#define MENU_MONITOR_AXIS 1
+#define MENU_MONITOR_BUTTONS 2
+
 MenuItem monitorMenuItems[] = {
+  MenuItem("Axis and buttons", []() { printAxisAndButtonsMonitor(); }),
   MenuItem("Axis", axisMenuItems, 7),
   MenuItem("Buttons", []() { printButtonsMonitor(); }),
   MenuItem("Usb In", []() { printLastUsbMessage(); }),
@@ -66,12 +71,14 @@ MenuItem settingsMenuItems[] = {
   MenuItem("Calibrate axis", axisCalibrationMenuItems, 7)
 };
 
+#define MENU_0_MOTORS 2
+#define MENU_MONITOR 1
 #define MENU_0_SETTINGS 3
 #define MENU_1_CALIBRATE_AXIS 0
 
 MenuItem menuItems[] = {
     MenuItem("About", printAbout),
-    MenuItem("Monitor", monitorMenuItems, 5),
+    MenuItem("Monitor", monitorMenuItems, 6),
     MenuItem("Motors", motorsMenuItems, 6),
     MenuItem("Settings", settingsMenuItems, 1),
     MenuItem("Item2", NULL),
@@ -118,6 +125,9 @@ void loopUi() {
       if (menu.getCurrentLevel() == 2 && menu.getRowAtLevel(0) == MENU_0_SETTINGS && menu.getRowAtLevel(1) == MENU_1_CALIBRATE_AXIS) {
         // at axis calibration screen
         setCalibrateAxis(ALL_AXIS, false);
+      } else if (menu.getCurrentLevel() == 1 && menu.getRowAtLevel(0) == MENU_0_MOTORS) {
+        // at motors screen
+        disableMotor(menu.getCurrentRow());
       }
       getLcd().clear();
       menu.show();
@@ -185,12 +195,14 @@ void refreshUi() {
     if (menu.getCurrentLevel() == 0 && menu.getCurrentRow() == 0) {
       // at about screen
       printAbout();
-    } else if (menu.getCurrentLevel() == 2 && menu.getRowAtLevel(0) == 1 && menu.getRowAtLevel(1) == 0) {
+    } else if (menu.getCurrentLevel() == 2 && menu.getRowAtLevel(0) == MENU_MONITOR && menu.getRowAtLevel(1) == MENU_MONITOR_AXIS) {
       // at axis monitor screen
       printAxisMonitor(menu.getCurrentRow());
-    } else if (menu.getCurrentLevel() == 1 && menu.getRowAtLevel(0) == 1 && menu.getCurrentRow() == 1) {
+    } else if (menu.getCurrentLevel() == 1 && menu.getRowAtLevel(0) == MENU_MONITOR && menu.getCurrentRow() == MENU_MONITOR_BUTTONS) {
       // at axis monitor screen
       printButtonsMonitor();
+    } else if (menu.getCurrentLevel() == 1 && menu.getRowAtLevel(0) == MENU_MONITOR && menu.getCurrentRow() == MENU_MONITOR_ALL) {
+      printAxisAndButtonsMonitor();
     } else if (menu.getCurrentLevel() == 2 && menu.getRowAtLevel(0) == MENU_0_SETTINGS && menu.getRowAtLevel(1) == MENU_1_CALIBRATE_AXIS) {
       // at axis calibration screen
       printAxisCalibration();

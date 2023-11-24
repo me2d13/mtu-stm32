@@ -2,6 +2,7 @@
 #include "motors.h"
 #include <AccelStepper.h>
 #include "inputs.h"
+#include "state.h"
 
 motorState motorStates[NUMBER_OF_MOTORS] = {
     {SPEED_BRAKE_DIR, SPEED_BRAKE_STEP, 3, 0, 0, false, 0, NULL, 0}, // GPA3 speed brake enable
@@ -50,6 +51,10 @@ void setupMotors() {
         motor->stepper.setCurrentPosition(0);
         disableMotor(i);
     }
+    // stepper voltage detect PIN
+    pinMode(PB15, INPUT);
+    // strong 5v voltage detect PIN
+    pinMode(PB14, INPUT_PULLUP);
 }
 
 void motorTestUp(uint8_t motorIndex) {
@@ -72,6 +77,16 @@ void loopMotors() {
     {
         motorState *motor = &motorStates[i];
         motor->stepper.run();
+    }
+    // read stepper voltage detect PIN and set its state if value changed
+    bool stepperVoltageDetected = digitalRead(PB15) == LOW;
+    if (stepperVoltageDetected != getMotorVoltagePresent()) {
+        setMotorVoltagePresent(stepperVoltageDetected);
+    }
+    // read strong 5v voltage detect PIN and set its state if value changed
+    bool strong5vVoltageDetected = digitalRead(PB14) == LOW;
+    if (strong5vVoltageDetected != getStrong5VoltagePresent()) {
+        setStrong5VoltagePresent(strong5vVoltageDetected);
     }
 }
 

@@ -75,28 +75,29 @@ void readAxis() {
         axisState *axis = getAxis(i);
         uint16_t lastValue = axis->value;
         uint16_t value = 0;
+        uint16_t rawValue = 0;
         if (axis->pin != NOT_USED) {
-            value = analogRead(axis->pin);
+            rawValue = analogRead(axis->pin);
         }
         if (axis->i2cChannel != NOT_USED) {
             i2cMultiplexer.selectChannel(axis->i2cChannel);
-            value = as5600.rawAngle();
+            rawValue = as5600.rawAngle();
         }
         // compenstate for axis offset, when movement goes over 0
-        value = (value + AXIS_MAX + axisOffsets[i]) % AXIS_MAX;
-        setAnalogInputValue(i, value);
+        rawValue = (rawValue + AXIS_MAX + axisOffsets[i]) % AXIS_MAX;
         if (!axis->calibrating && (lastValue != value || initialRun)) {
             // because of some noise, never use value below minValue or above maxValue
-            if (value < axis->minValue) {
-                value = axis->minValue;
+            if (rawValue < axis->minValue) {
+                rawValue = axis->minValue;
             }
-            if (value > axis->maxValue) {
-                value = axis->maxValue;
+            if (rawValue > axis->maxValue) {
+                rawValue = axis->maxValue;
             }
             // recalculate value by calibrated axis range to have 0-4096 range
-            value = map(value, axis->minValue, axis->maxValue, 0, AXIS_MAX);
+            value = map(rawValue, axis->minValue, axis->maxValue, 0, AXIS_MAX);
             setJoystickAxis(i, value);
         }
+        setAnalogInputValue(i, value, rawValue);
     }
 }
 
@@ -113,7 +114,7 @@ void manageButtons() {
                 buttons[i].value = value;
                 buttons[i].changeCount++;
                 buttons[i].lastChangeTime = millis();
-                setJoystickButton(i, value == LOW);
+                setJoystickButton(i, value == (buttons[i].reversed ? HIGH : LOW));
                 if (buttons[i].pin == PIN_PARK_SWITCH) {
                     digitalWrite(PIN_PARK_LED, !value);
                 }
@@ -130,7 +131,7 @@ void initialReadButtons() {
         buttons[i].value = ioExpander.digitalRead(buttons[i].pin);
         buttons[i].changeCount++;
         buttons[i].lastChangeTime = millis();
-        setJoystickButton(i, buttons[i].value == LOW);
+        setJoystickButton(i, buttons[i].value == (buttons[i].reversed ? HIGH : LOW));
         if (buttons[i].pin == PIN_PARK_SWITCH) {
             digitalWrite(PIN_PARK_LED, !buttons[i].value);
         }

@@ -36,6 +36,7 @@ struct motorState {
 
 void setupMotors();
 void loopMotors();
+void disableMotor(uint8_t index);
 void motorTestUp(uint8_t motorIndex);
 void motorTestDown(uint8_t motorIndex);
 void motorMoveRelation(uint8_t motorIndex, int diff);

@@ -4,13 +4,15 @@
 #include "inputs.h"
 #include "state.h"
 
+#define MOTOR_CONFIG(x, enablePin, reversed) {x##_DIR, x##_STEP, enablePin, 0, 0, false, 0, NULL, reversed, 0}
+
 motorState motorStates[NUMBER_OF_MOTORS] = {
     {SPEED_BRAKE_DIR, SPEED_BRAKE_STEP, 3, 0, 0, false, 0, NULL, 0}, // GPA3 speed brake enable
-    {THR1_DIR, THR1_STEP, 0, 0, 0, false, 0, NULL, 0}, // GPA0 throttle enable
-    {THR2_DIR, THR2_STEP, 0, 0, 0, false, 0, NULL, 0}, // GPA0 throttle enable
-    {TRIM_DIR, TRIM_STEP, 2, 0, 0, false, 0, NULL, 0}, // GPA2 trim enable
-    {IND_DIR, IND_STEP, PA8, 0, 0, false, 0, NULL, 0}, 
-    {IND_DIR, IND_STEP, PB12, 0, 0, false, 0, NULL, 0}
+    {THR1_DIR, THR1_STEP, 0, 0, 0, false, 0, NULL, false, 0}, // GPA0 throttle enable
+    {THR2_DIR, THR2_STEP, 0, 0, 0, false, 0, NULL, false, 0}, // GPA0 throttle enable
+    {TRIM_DIR, TRIM_STEP, 2, 0, 0, false, 0, NULL, false, 0}, // GPA2 trim enable
+    MOTOR_CONFIG(IND, PA8, false), 
+    MOTOR_CONFIG(IND, PB12, false)
 };
 
 // function to return motor state
@@ -45,7 +47,7 @@ void setupMotors() {
     {
         motorState *motor = &motorStates[i];
         motor->stepper = AccelStepper(1, motor->stepPin, motor->dirPin);
-        motor->stepper.setPinsInverted(false, false, true);
+        motor->stepper.setPinsInverted(motor->invertedDirection, false, true);
         motor->stepper.setMaxSpeed(500);
         motor->stepper.setAcceleration(100);
         motor->stepper.setCurrentPosition(0);

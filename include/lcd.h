@@ -15,6 +15,7 @@ void scrollUp();
 void scrollDown();
 void printAxisCalibration();
 void printAxisAndButtonsMonitor();
+void printString(String message);
 
 #define LCD_COLS 20
 #define LCD_ROWS 4

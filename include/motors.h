@@ -30,12 +30,14 @@ struct motorState {
     bool traveling;
     uint32_t travelStartTime;
     AccelStepper stepper;
+    bool invertedDirection;
     long position; // temporary
 };
 
 
 void setupMotors();
 void loopMotors();
+void enableMotor(uint8_t index);
 void disableMotor(uint8_t index);
 void motorTestUp(uint8_t motorIndex);
 void motorTestDown(uint8_t motorIndex);

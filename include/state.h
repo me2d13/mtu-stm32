@@ -12,6 +12,9 @@
 
 #define NOT_USED 100
 
+#define BUTTON_INDEX_TRIM_INDICATOR_STOP_1 9
+#define BUTTON_INDEX_TRIM_INDICATOR_STOP_2 10
+
 struct buttonState {
     uint8_t pin;
     uint8_t value;

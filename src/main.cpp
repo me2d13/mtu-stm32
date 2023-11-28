@@ -6,7 +6,8 @@
 #include "joy.h"
 #include "motors.h"
 #include "eeprom.h"
-
+#include "log.h"
+#include "trim.h"
 
 #define ledPin PC13 //13
 
@@ -46,6 +47,7 @@ void setup() {
   setupJoystick();
   setupMotors();
   readCalibrationFromEeprom();
+  log("MTU started...");
 }
 
 void loop() {
@@ -55,4 +57,5 @@ void loop() {
   loopUi();
   refreshInputs();
   loopMotors();
+  loopTrims();
 }

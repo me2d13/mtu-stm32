@@ -4,6 +4,8 @@
 #include "menu.h"
 #include "motors.h"
 #include "joy.h"
+#include "log.h"
+#include "trim.h"
 
 #define PIN_A            PB3  
 #define PIN_B            PB4  
@@ -12,10 +14,14 @@
 u_int32_t lastButtonPress = 0;
 u_int32_t enterEventCount = 0;
 bool enterIsDown = false;
+int currentLog = 0;
 
 bool upPressed = false;
 bool downPressed = false;
 bool enterPressed = false;
+
+void startPrintLog();
+void printLog();
 
 MD_REncoder encoder = MD_REncoder(PIN_A, PIN_B);
 Menu menu = Menu(getLcd());
@@ -30,11 +36,13 @@ MenuItem axisMenuItems[] = {
   MenuItem("Trim", []() { printAxisMonitor(6); })
 };
 
-#define MENU_MONITOR_ALL 0
-#define MENU_MONITOR_AXIS 1
-#define MENU_MONITOR_BUTTONS 2
+#define MENU_MONITOR_LOG 0
+#define MENU_MONITOR_ALL 1
+#define MENU_MONITOR_AXIS 2
+#define MENU_MONITOR_BUTTONS 3
 
 MenuItem monitorMenuItems[] = {
+  MenuItem("Log", []() { startPrintLog(); }),
   MenuItem("Axis and buttons", []() { printAxisAndButtonsMonitor(); }),
   MenuItem("Axis", axisMenuItems, 7),
   MenuItem("Buttons", []() { printButtonsMonitor(); }),
@@ -68,7 +76,8 @@ MenuItem axisCalibrationMenuItems[] = {
 };
 
 MenuItem settingsMenuItems[] = {
-  MenuItem("Calibrate axis", axisCalibrationMenuItems, 7)
+  MenuItem("Calibrate axis", axisCalibrationMenuItems, 7),
+  MenuItem("Trim indicators", []() { calibrateTrims(); }),
 };
 
 #define MENU_0_MOTORS 2
@@ -78,9 +87,9 @@ MenuItem settingsMenuItems[] = {
 
 MenuItem menuItems[] = {
     MenuItem("About", printAbout),
-    MenuItem("Monitor", monitorMenuItems, 6),
+    MenuItem("Monitor", monitorMenuItems, 7),
     MenuItem("Motors", motorsMenuItems, 6),
-    MenuItem("Settings", settingsMenuItems, 1),
+    MenuItem("Settings", settingsMenuItems, 2),
     MenuItem("Item2", NULL),
     MenuItem("Item3", NULL)
   };
@@ -88,6 +97,12 @@ MenuItem menuItems[] = {
 void onDownInScreen(int menuLevel) {
   if (menuLevel == 1 && menu.getRowAtLevel(0) == 2) {
     motorTestDown(menu.getCurrentRow());
+  } else if (menuLevel == 1 && menu.getRowAtLevel(0) == MENU_MONITOR && menu.getCurrentRow() == MENU_MONITOR_LOG) {
+    currentLog++;
+    if (currentLog >= getLogs().size()) {
+      currentLog = getLogs().size() - 1;
+    }
+    printLog();
   } else {
     scrollDown();
   }
@@ -96,6 +111,12 @@ void onDownInScreen(int menuLevel) {
 void onUpInScreen(int menuLevel) {
   if (menuLevel == 1 && menu.getRowAtLevel(0) == 2) {
     motorTestUp(menu.getCurrentRow());
+  } else if (menuLevel == 1 && menu.getRowAtLevel(0) == MENU_MONITOR && menu.getCurrentRow() == MENU_MONITOR_LOG) {
+    currentLog--;
+    if (currentLog < 0) {
+      currentLog = 0;
+    }
+    printLog();
   } else {
     scrollUp();
   }
@@ -187,6 +208,37 @@ void setupUi() {
   attachInterrupt(digitalPinToInterrupt(BUTTON), encoderButtonISR, CHANGE); //call pushButtonISR() every high->low              changes
   setupMenu();
   menu.show();
+}
+
+void printLog() {
+  std::deque<std::string>& logs = getLogs();
+  int totalLogs = logs.size();
+  getLcd().clear();
+  getLcd().setCursor(0, 0);
+  getLcd().print("Log ");
+  getLcd().print(currentLog + 1);
+  getLcd().print("/");
+  getLcd().print(totalLogs);
+  getLcd().setCursor(0, 1);
+  // logs are inverted in deque, so print them in reverse order
+  int realIndex = totalLogs - currentLog - 1;
+  // print first LCD_COLS chars
+  getLcd().print(logs[realIndex].substr(0, LCD_COLS).c_str());
+  getLcd().setCursor(0, 2);
+  // print second LCD_COLS chars if available
+  if (logs[realIndex].length() > LCD_COLS) {
+    getLcd().print(logs[realIndex].substr(LCD_COLS, LCD_COLS).c_str());
+  }
+  getLcd().setCursor(0, 3);
+  // print third LCD_COLS chars if available
+  if (logs[realIndex].length() > LCD_COLS * 2) {
+    getLcd().print(logs[realIndex].substr(LCD_COLS * 2, LCD_COLS).c_str());
+  }
+}
+
+void startPrintLog() {
+  currentLog = getLogs().size() - 1;
+  printLog();
 }
 
 void refreshUi() {

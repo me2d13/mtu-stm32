@@ -47,6 +47,7 @@ void setup() {
   setupJoystick();
   setupMotors();
   readCalibrationFromEeprom();
+  setupTrims();
   log("MTU started...");
 }
 

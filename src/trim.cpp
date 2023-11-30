@@ -9,7 +9,7 @@
 
 using namespace ace_routine;
 
-enum trimCalibrationState { inactive, started, working, done };
+enum trimCalibrationState { inactive, willStart, started, working, done };
 
 trimCalibrationState leftTrimState = inactive;
 trimCalibrationState rightTrimState = inactive;
@@ -69,6 +69,9 @@ class TrimCalibrationCoroutine : public Coroutine {
                     *trimState = done;
                     if (followingTrimState != NULL) {
                         *followingTrimState = started;
+                    } else {
+                        printString("Trim calibration done");
+                        getGlobalState()->trimCalibrated = true;
                     }
                 } else {
                     printString("Trim in 2nd part\nSeeking first part margin");
@@ -89,6 +92,9 @@ class TrimCalibrationCoroutine : public Coroutine {
                     }
                     disableMotor(motorIndex);
                 }
+            } else if (*trimState == willStart) {
+                COROUTINE_DELAY_SECONDS(3);
+                *trimState = started;
             } else {
                 COROUTINE_YIELD();
             }
@@ -100,12 +106,24 @@ TrimCalibrationCoroutine leftCoroutine(BUTTON_INDEX_TRIM_INDICATOR_STOP_1, 4, &l
 TrimCalibrationCoroutine rightCoroutine(BUTTON_INDEX_TRIM_INDICATOR_STOP_2, 5, &rightTrimState, 180, NULL);
 
 void calibrateTrims() {
-    printString("Calibrating trim #1");
-    if (!getMotorVoltagePresent()) {
+    printString("Calibrating trims");
+    if (!getGlobalState()->motorVoltagePresent) {
         log("WARN: Starting trim calibration without motor voltage");
     }
     leftTrimState = started;
 }
+
+void setupTrims() {
+    leftTrimState = inactive;
+    rightTrimState = inactive;
+    addStateCallback(motorVoltageChanged, [](int param) {
+        if (param == 1) {
+            leftTrimState = willStart;
+            rightTrimState = inactive;
+        }
+    });
+}
+
 
 void loopTrims() {
     if (leftTrimState != inactive) {

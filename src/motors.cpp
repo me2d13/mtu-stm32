@@ -82,13 +82,13 @@ void loopMotors() {
     }
     // read stepper voltage detect PIN and set its state if value changed
     bool stepperVoltageDetected = digitalRead(PB15) == LOW;
-    if (stepperVoltageDetected != getMotorVoltagePresent()) {
+    if (stepperVoltageDetected != getGlobalState()->motorVoltagePresent) {
         setMotorVoltagePresent(stepperVoltageDetected);
     }
     // read strong 5v voltage detect PIN and set its state if value changed
     bool strong5vVoltageDetected = digitalRead(PB14) == LOW;
-    if (strong5vVoltageDetected != getStrong5VoltagePresent()) {
-        setStrong5VoltagePresent(strong5vVoltageDetected);
+    if (strong5vVoltageDetected != getGlobalState()->strong5VoltagePresent) {
+        getGlobalState()->strong5VoltagePresent = strong5vVoltageDetected;
     }
 }
 

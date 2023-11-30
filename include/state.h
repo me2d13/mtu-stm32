@@ -15,6 +15,15 @@
 #define BUTTON_INDEX_TRIM_INDICATOR_STOP_1 9
 #define BUTTON_INDEX_TRIM_INDICATOR_STOP_2 10
 
+enum callbackEventType { motorVoltageChanged };
+
+struct globalState {
+    char i2cMultiplexerState[COMMON_STATE_LENGTH] = "?";
+    bool motorVoltagePresent = false;
+    bool strong5VoltagePresent = false;
+    bool trimCalibrated = false;
+};
+
 struct buttonState {
     uint8_t pin;
     uint8_t value;
@@ -45,7 +54,6 @@ axisState *getAxis(uint8_t index);
 void setLastMessage(String message);
 String getLastMessage();
 
+void addStateCallback(callbackEventType eventType, void (*callback)(int param));
 void setMotorVoltagePresent(bool value);
-bool getMotorVoltagePresent();
-void setStrong5VoltagePresent(bool value);
-bool getStrong5VoltagePresent();
+globalState *getGlobalState();

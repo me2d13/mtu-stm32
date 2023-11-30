@@ -3,9 +3,7 @@
 #include <string.h>
 #include "joy.h"
 
-char i2cMultiplexerState[COMMON_STATE_LENGTH] = "?";
-bool motorVoltagePresent = false;
-bool strong5VoltagePresent = false;
+globalState global;
 
 String lastMessage = "No message received yet.\nBut dont worry, it will come soon.\nOne day...\nMaybe...\nOr not...\nWho knows...\n";
 
@@ -34,17 +32,18 @@ buttonState buttons[] = {
     { PIN_PARK_SWITCH, 0, 0, 0 } // GPA3 parking brake
 };
 
+struct callbackRecord {
+    callbackEventType eventType;
+    void (*callback)(int param);
+};
+
+callbackRecord callbacks[10];
+int callbackCount = 0;
+
 buttonState* getButtons() {
     return buttons;
 }
 
-void setI2cMultiplexerState(char *state) {
-    strcpy(i2cMultiplexerState, state);
-}
-
-char *getI2cMultiplexerState() {
-    return i2cMultiplexerState;
-}
 
 void setAnalogInputValue(uint8_t index, uint16_t value, uint16_t rawValue) {
     if (axis[index].value != value) {
@@ -80,18 +79,23 @@ String getLastMessage() {
     return lastMessage;
 }
 
+globalState *getGlobalState() {
+    return &global;
+}
+
+void addStateCallback(callbackEventType eventType, void (*callback)(int param)) {
+    callbacks[callbackCount].eventType = eventType;
+    callbacks[callbackCount].callback = callback;
+    callbackCount++;
+}
+
 void setMotorVoltagePresent(bool value) {
-    motorVoltagePresent = value;
-}
-
-bool getMotorVoltagePresent() {
-    return motorVoltagePresent;
-}
-
-bool getStrong5VoltagePresent() {
-    return strong5VoltagePresent;
-}
-
-void setStrong5VoltagePresent(bool value) {
-    strong5VoltagePresent = value;
+    if (global.motorVoltagePresent != value) {
+        global.motorVoltagePresent = value;
+        for (int i = 0; i < callbackCount; i++) {
+            if (callbacks[i].eventType == motorVoltageChanged) {
+                callbacks[i].callback(value);
+            }
+        }
+    }
 }

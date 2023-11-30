@@ -4,3 +4,4 @@
 
 void calibrateTrims();
 void loopTrims();
+void setupTrims();

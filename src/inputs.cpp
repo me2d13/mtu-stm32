@@ -26,9 +26,9 @@ void setupInputs() {
     buttonState* buttons = getButtons();
     Wire.begin();
     if (i2cMultiplexer.begin()) {
-        setI2cMultiplexerState((char *) "OK");
+        strcpy(getGlobalState()->i2cMultiplexerState, (char *) "OK");
     } else {
-        setI2cMultiplexerState((char *) "ERR");
+        strcpy(getGlobalState()->i2cMultiplexerState, (char *) "ERR");
     }
     as5600.begin(4);
     //ioExpander.begin(Wire2);

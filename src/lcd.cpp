@@ -94,11 +94,11 @@ void printAbout()
   }
   lcd.setCursor(0, 2);
   lcd.print("I2cMpx:");
-  lcd.print(getI2cMultiplexerState());
+  lcd.print(getGlobalState()->i2cMultiplexerState);
   lcd.print(", 24:");
-  lcd.print(getMotorVoltagePresent() ? "Y" : "N");
+  lcd.print(getGlobalState()->motorVoltagePresent ? "Y" : "N");
   lcd.print(", 5:");
-  lcd.print(getStrong5VoltagePresent() ? "Y" : "N");
+  lcd.print(getGlobalState()->strong5VoltagePresent ? "Y" : "N");
   lcd.setCursor(0, 3);
   lcd.print("Enter event#: ");
   lcd.print(getEnterEventCount());

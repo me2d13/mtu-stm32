@@ -10,7 +10,7 @@
 #define PIN_PARK_SWITCH 4
 #define PIN_PARK_LED PA3
 
-#define NOT_USED 100
+#define NOT_USED 253
 
 #define BUTTON_INDEX_TRIM_INDICATOR_STOP_1 9
 #define BUTTON_INDEX_TRIM_INDICATOR_STOP_2 10
@@ -35,11 +35,12 @@ struct buttonState {
 struct axisState {
     uint8_t pin;
     uint8_t i2cChannel;
-    uint16_t value;
-    uint16_t rawValue;
+    uint16_t value; // 0-4096
+    uint16_t rawValue; // from sensor, just shifted with offset and reversed
     uint16_t minValue;
     uint16_t maxValue;
     bool calibrating;
+    bool reversed;
 };
 
 buttonState* getButtons();

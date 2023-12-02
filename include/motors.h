@@ -25,13 +25,12 @@ struct motorState {
     uint8_t dirPin;
     uint8_t stepPin;
     uint8_t enablePin;
-    uint8_t axisIndex;
     uint16_t targetValue;
-    bool traveling;
-    uint32_t travelStartTime;
     AccelStepper stepper;
     bool invertedDirection;
-    long position; // temporary
+    bool enabled;
+    uint16_t lastRecordedValue;
+    uint32_t lastRecordedTime;
 };
 
 
@@ -39,7 +38,5 @@ void setupMotors();
 void loopMotors();
 void enableMotor(uint8_t index);
 void disableMotor(uint8_t index);
-void motorTestUp(uint8_t motorIndex);
-void motorTestDown(uint8_t motorIndex);
-void motorMoveRelation(uint8_t motorIndex, int diff);
 motorState *getMotor(uint8_t index);
+void moveMotorBySensor(uint8_t motorIndex, float position);

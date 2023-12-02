@@ -22,6 +22,7 @@ bool enterPressed = false;
 
 void startPrintLog();
 void printLog();
+void setMotorPos(float requestedPos);
 
 MD_REncoder encoder = MD_REncoder(PIN_A, PIN_B);
 Menu menu = Menu(getLcd());
@@ -51,13 +52,21 @@ MenuItem monitorMenuItems[] = {
   MenuItem("I2C2", []() { printI2C(1); })
 };
 
+MenuItem oneMotorMenuItems[] = {
+  MenuItem("Pos 0", []() { setMotorPos(0); }),
+  MenuItem("Pos 30", []() { setMotorPos(30); }),
+  MenuItem("Pos 60", []() { setMotorPos(60); }),
+  MenuItem("Pos 100", []() { setMotorPos(100); })
+};
+
 MenuItem motorsMenuItems[] = {
-  MenuItem("Speed brake", []() { printMotors(0); }),
-  MenuItem("Throttle 1", []() { printMotors(1); }),
-  MenuItem("Throttle 2", []() { printMotors(2); }),
-  MenuItem("Trim", []() { printMotors(3); }),
-  MenuItem("Trim Ind 1", []() { printMotors(4); }),
-  MenuItem("Trim Ind 2", []() { printMotors(5); })
+  MenuItem("Speed brake", oneMotorMenuItems, 4),
+  MenuItem("Throttle 1", oneMotorMenuItems, 4),
+  MenuItem("Throttle 2", oneMotorMenuItems, 4),
+  MenuItem("Trim", oneMotorMenuItems, 4),
+  MenuItem("Trim Ind 1", oneMotorMenuItems, 4),
+  MenuItem("Trim Ind 2", oneMotorMenuItems, 4),
+  MenuItem("Both Trim Ind", oneMotorMenuItems, 4)
 };
 
 void startCalibrateAxis(uint8_t axis) {
@@ -88,16 +97,14 @@ MenuItem settingsMenuItems[] = {
 MenuItem menuItems[] = {
     MenuItem("About", printAbout),
     MenuItem("Monitor", monitorMenuItems, 7),
-    MenuItem("Motors", motorsMenuItems, 6),
+    MenuItem("Motors", motorsMenuItems, 7),
     MenuItem("Settings", settingsMenuItems, 2),
     MenuItem("Item2", NULL),
     MenuItem("Item3", NULL)
   };
 
 void onDownInScreen(int menuLevel) {
-  if (menuLevel == 1 && menu.getRowAtLevel(0) == 2) {
-    motorTestDown(menu.getCurrentRow());
-  } else if (menuLevel == 1 && menu.getRowAtLevel(0) == MENU_MONITOR && menu.getCurrentRow() == MENU_MONITOR_LOG) {
+  if (menuLevel == 1 && menu.getRowAtLevel(0) == MENU_MONITOR && menu.getCurrentRow() == MENU_MONITOR_LOG) {
     currentLog++;
     if (currentLog >= getLogs().size()) {
       currentLog = getLogs().size() - 1;
@@ -109,9 +116,7 @@ void onDownInScreen(int menuLevel) {
 }  
 
 void onUpInScreen(int menuLevel) {
-  if (menuLevel == 1 && menu.getRowAtLevel(0) == 2) {
-    motorTestUp(menu.getCurrentRow());
-  } else if (menuLevel == 1 && menu.getRowAtLevel(0) == MENU_MONITOR && menu.getCurrentRow() == MENU_MONITOR_LOG) {
+  if (menuLevel == 1 && menu.getRowAtLevel(0) == MENU_MONITOR && menu.getCurrentRow() == MENU_MONITOR_LOG) {
     currentLog--;
     if (currentLog < 0) {
       currentLog = 0;
@@ -259,5 +264,19 @@ void refreshUi() {
       // at axis calibration screen
       printAxisCalibration();
     }
+  }
+}
+
+void setMotorPos(float requestedPos) {
+  int motorIndex = menu.getRowAtLevel(1);
+  if (motorIndex == 6) {
+    // both trim indicators
+    //log("Setting both trim indicators to " + String(requestedPos));
+    setElevatorTrim(requestedPos);
+  } else if (motorIndex <= 2) {
+    moveMotorBySensor(motorIndex, requestedPos);
+  } else {
+    // TODO set other motors
+    log("Not yet implemented");
   }
 }

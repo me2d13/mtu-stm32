@@ -51,12 +51,17 @@ void setup() {
   log("MTU started...");
 }
 
+int loopCounter = 0;
+
 void loop() {
-  loopUsbIn();
-  blinkLed.runCoroutine();
-  refreshUiCoRoutine.runCoroutine();
-  loopUi();
-  refreshInputs();
+  if (loopCounter++ > 10) {
+    refreshInputs();
+    loopUsbIn();
+    blinkLed.runCoroutine();
+    refreshUiCoRoutine.runCoroutine();
+    loopUi();
+    loopCounter = 0;
+  }
   loopMotors();
   loopTrims();
 }

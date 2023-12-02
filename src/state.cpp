@@ -9,7 +9,7 @@ String lastMessage = "No message received yet.\nBut dont worry, it will come soo
 
 axisState axis[NUMBER_OF_ANALOG_INPUTS] = {
     { NOT_USED, 0, 0, 0, 0, AXIS_MAX, false }, // Speed brake
-    { NOT_USED, 1, 0, 0, 0, AXIS_MAX, false }, // Throttle 1
+    { NOT_USED, 1, 0, 0, 0, AXIS_MAX, false, true }, // Throttle 1
     { NOT_USED, 2, 0, 0, 0, AXIS_MAX, false }, // Throttle 2
     { NOT_USED, 3, 0, 0, 0, AXIS_MAX, false }, // Flaps
     { PA1, NOT_USED, 0, 0, 0, AXIS_MAX, false }, // Reverse 1
@@ -46,14 +46,14 @@ buttonState* getButtons() {
 
 
 void setAnalogInputValue(uint8_t index, uint16_t value, uint16_t rawValue) {
-    if (axis[index].value != value) {
+    if (axis[index].rawValue != rawValue) {
         axis[index].value = value;
-        // auto calibration, set min and max values
-        if (axis[index].calibrating && axis[index].minValue > value) {
-            axis[index].minValue = value;
+        // auto calibration, set min and max raw values
+        if (axis[index].calibrating && axis[index].minValue > rawValue) {
+            axis[index].minValue = rawValue;
         }
-        if (axis[index].calibrating && axis[index].maxValue < value) {
-            axis[index].maxValue = value;
+        if (axis[index].calibrating && axis[index].maxValue < rawValue) {
+            axis[index].maxValue = rawValue;
         }
     }
     axis[index].rawValue = rawValue;

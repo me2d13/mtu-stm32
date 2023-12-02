@@ -73,7 +73,7 @@ void setMuxedOutputPin(uint8_t pin, uint8_t value) {
 void readAxis() {
     for (int i = 0; i < NUMBER_OF_ANALOG_INPUTS; i++) {
         axisState *axis = getAxis(i);
-        uint16_t lastValue = axis->value;
+        uint16_t lastRawValue = axis->rawValue;
         uint16_t value = 0;
         uint16_t rawValue = 0;
         if (axis->pin != NOT_USED) {
@@ -85,7 +85,10 @@ void readAxis() {
         }
         // compenstate for axis offset, when movement goes over 0
         rawValue = (rawValue + AXIS_MAX + axisOffsets[i]) % AXIS_MAX;
-        if (!axis->calibrating && (lastValue != value || initialRun)) {
+        if (axis->reversed) {
+            rawValue = AXIS_MAX - rawValue;
+        }
+        if (!axis->calibrating && (lastRawValue != rawValue || initialRun)) {
             // because of some noise, never use value below minValue or above maxValue
             if (rawValue < axis->minValue) {
                 rawValue = axis->minValue;

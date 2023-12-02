@@ -143,7 +143,8 @@ void printAxisAndButtonsMonitor() {
 
 void printAxisMonitor(int axisIndex) {
   bufferredScreen = false;
-  lcd.setCursor(0, 0);
+  u_int8_t line = 0;
+  lcd.setCursor(0, line);
   lcd.print(axisNames[axisIndex]);
   lcd.print(" (");
   lcd.print(axisIndex);
@@ -152,20 +153,17 @@ void printAxisMonitor(int axisIndex) {
   axisState *axis = getAxis(axisIndex);
   lcd.print(axis->value);
   lcd.print("    ");
-  lcd.setCursor(0, 1);
+  lcd.setCursor(0, ++line);
+  lcd.print("Raw: ");
+  lcd.print(axis->rawValue);
+  lcd.setCursor(0, ++line);
   lcd.print("Min: ");
   lcd.print(axis->minValue);
   lcd.print("    ");
-  lcd.setCursor(0, 2);
+  lcd.setCursor(0, ++line);
   lcd.print("Max: ");
   lcd.print(axis->maxValue);
   lcd.print("    ");
-}
-
-void printMotors(int index) {
-  bufferredScreen = false;
-  lcd.setCursor(0, 0);
-  lcd.print("Turn to move");
 }
 
 void clearScreenBuffer() {

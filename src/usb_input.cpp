@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 #include "state.h"
 #include "motors.h"
+#include "trim.h"
 
 SerialUSB_ SerialUSB;
 StaticJsonDocument<4096> doc;
@@ -11,6 +12,8 @@ StaticJsonDocument<4096> doc;
 // {"command":"hello"}
 // {"command":"getCalibrationInfo"}
 // {"command":"getState"}
+// {"command":"setPositions", "positions": { "elevatorTrim": 23.6}}
+// {"command":"setPositions","positions":{"elevatorTrim":30.5, "speedBrake": 20, "throttle1": 30, "throttle2": 40}}
 
 /*
 
@@ -61,16 +64,34 @@ void sendStateInfo() {
   SerialUSB.println(""); // new line char
 }
 
+void processSetPosition() {
+  JsonObject positions = doc["positions"];
+  if (positions.containsKey("elevatorTrim")) {
+    float elevatorTrim = positions["elevatorTrim"];
+    setElevatorTrim(elevatorTrim);
+  }
+  if (positions.containsKey("speedBrake")) {
+    float value = positions["speedBrake"];
+    moveMotorBySensor(0, value);
+  }
+  if (positions.containsKey("throttle1")) {
+    float value = positions["throttle1"];
+    moveMotorBySensor(1, value);
+  }
+  if (positions.containsKey("throttle2")) {
+    float value = positions["throttle2"];
+    moveMotorBySensor(2, value);
+  }
+}
+
 void processCommand() {
     String command = doc["command"];
-    if (command == "motorPos") {
-        int index = doc["index"];
-        int relative = doc["relative"];
-        motorMoveRelation(index, relative);
-    } else if (command == "hello") {
+if (command == "hello") {
       SerialUSB.println("mtu hello");
     } else if (command == "getCalibrationInfo") {
       sendCalibrationInfo();
+    } else if (command == "setPositions") {
+      processSetPosition();
     } else if (command == "getState") {
       sendStateInfo();
     }

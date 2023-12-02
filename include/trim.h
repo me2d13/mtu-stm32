@@ -5,3 +5,4 @@
 void calibrateTrims();
 void loopTrims();
 void setupTrims();
+void setElevatorTrim(float elevatorTrim);

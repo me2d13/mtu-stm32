@@ -4,8 +4,11 @@
 #include "log.h"
 #include <AceRoutine.h>
 #include "motors.h"
+#include <string>
 
 #define STEPS_FOR_TRIM_5 185
+
+#define SKIP_CALIBRATION 
 
 using namespace ace_routine;
 
@@ -52,15 +55,15 @@ class TrimCalibrationCoroutine : public Coroutine {
                     // print current position 
                     printString("Second part margin\n found after steps: " + String(getMotor(motorIndex)->stepper.currentPosition()) + "\nHave trim 5");
                     getMotor(motorIndex)->stepper.moveTo(STEPS_FOR_TRIM_5);
-                    COROUTINE_DELAY_SECONDS(5);
+                    COROUTINE_DELAY_SECONDS(2);
                     getMotor(motorIndex)->stepper.moveTo(2*STEPS_FOR_TRIM_5);
                     COROUTINE_AWAIT(!getMotor(motorIndex)->stepper.isRunning());
                     printString("Moved to trim 10");
-                    COROUTINE_DELAY_SECONDS(5);
+                    COROUTINE_DELAY_SECONDS(2);
                     getMotor(motorIndex)->stepper.moveTo(3*STEPS_FOR_TRIM_5);
                     COROUTINE_AWAIT(!getMotor(motorIndex)->stepper.isRunning());
                     printString("Moved to trim 15");
-                    COROUTINE_DELAY_SECONDS(5);
+                    COROUTINE_DELAY_SECONDS(2);
                     getMotor(motorIndex)->stepper.moveTo(0);
                     COROUTINE_AWAIT(!getMotor(motorIndex)->stepper.isRunning());
                     printString("Moved to trim 0");
@@ -114,6 +117,13 @@ void calibrateTrims() {
 }
 
 void setupTrims() {
+    #ifdef SKIP_CALIBRATION
+    leftTrimState = done;
+    rightTrimState = done;
+    getGlobalState()->trimCalibrated = true;
+    getMotor(4)->stepper.setCurrentPosition(0);
+    getMotor(5)->stepper.setCurrentPosition(0);
+    #else
     leftTrimState = inactive;
     rightTrimState = inactive;
     addStateCallback(motorVoltageChanged, [](int param) {
@@ -122,14 +132,35 @@ void setupTrims() {
             rightTrimState = inactive;
         }
     });
+    #endif
+}
+
+void setElevatorTrim(float elevatorTrim) {
+    if (getGlobalState()->trimCalibrated) {
+        log("Setting elevator trim");
+        enableMotor(4);
+        enableMotor(5);
+        long positionInSteps = elevatorTrim * 3 * STEPS_FOR_TRIM_5 / 100;
+        getMotor(4)->stepper.moveTo(positionInSteps);
+        // no need to move right trim, they share the same control pins
+    } else {
+        log("WARN: Can't set elevator trim, trim not calibrated");
+    }
 }
 
 
 void loopTrims() {
-    if (leftTrimState != inactive) {
+    if (leftTrimState != inactive && leftTrimState != done) {
         leftCoroutine.runCoroutine();
     }
-    if (rightTrimState != inactive) {
+    if (rightTrimState != inactive && rightTrimState != done) {
         rightCoroutine.runCoroutine();
+    }
+    // disable motor when not moving and calibration is done
+    if (leftTrimState == done && !getMotor(4)->stepper.isRunning() && getMotor(4)->enabled) {
+        disableMotor(4);
+    }
+    if (rightTrimState == done && !getMotor(4)->stepper.isRunning() && getMotor(5)->enabled) {
+        disableMotor(5);
     }
 }

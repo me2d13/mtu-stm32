@@ -9,7 +9,6 @@ void printI2C(int index);
 LiquidCrystal_I2C& getLcd();
 void printButtonsMonitor();
 void printBuffer();
-void printMotors(int index);
 void printLastUsbMessage();
 void scrollUp();
 void scrollDown();
